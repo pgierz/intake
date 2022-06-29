@@ -94,7 +94,7 @@ class Catalog(DataSource):
             self.user_parameters = {}
         if persist_mode not in ['always', 'never', 'default']:
             # should be True, False, None ?
-            raise ValueError('Persist mode (%s) not understood' % persist_mode)
+            raise ValueError(f'Persist mode ({persist_mode}) not understood')
         self.pmode = persist_mode
 
         if entries and isinstance(entries, str):
@@ -185,14 +185,16 @@ class Catalog(DataSource):
                    if any(word in str(v.describe().values()).lower()
                    for word in words)}
         cat = Catalog.from_dict(
-            entries, name=self.name + "_search",
+            entries,
+            name=f"{self.name}_search",
             ttl=self.ttl,
             getenv=self.getenv,
             getshell=self.getshell,
             metadata=(self.metadata or {}).copy(),
             storage_options=self.storage_options,
-            user_parameters=self.user_parameters.copy()
+            user_parameters=self.user_parameters.copy(),
         )
+
         cat.metadata['search'] = {'text': text, 'upstream': self.name}
         cat.cat = self
         for e in entries.values():
@@ -258,7 +260,6 @@ class Catalog(DataSource):
                     item().walk(out, prefix + [name], depth-1)
                 except Exception as e:
                     print(e)
-                    pass  # ignore inability to descend
             n = '.'.join(prefix + [name])
             out[n] = item
         return out
@@ -316,8 +317,11 @@ class Catalog(DataSource):
         entry._catalog = self
         entry._pmode = self.pmode
 
-        up_names = set((up["name"] if isinstance(up, dict) else up.name)
-                        for up in entry._user_parameters)
+        up_names = {
+            up["name"] if isinstance(up, dict) else up.name
+            for up in entry._user_parameters
+        }
+
         ups = [up for name, up in self.user_parameters.items() if name not in up_names]
         entry._user_parameters = ups + (entry._user_parameters or [])
         return entry()
@@ -333,13 +337,12 @@ class Catalog(DataSource):
                         kw['default'] = v
                         ups[k] = UserParameter(**kw)
                         kwargs.pop(k)
-                else:
-                    if k == up.name:
-                        kw = up._captured_init_kwargs.copy()
-                        kw['default'] = v
-                        kw["name"] = k
-                        ups[k] = UserParameter(**kw)
-                        kwargs.pop(k)
+                elif k == up.name:
+                    kw = up._captured_init_kwargs.copy()
+                    kw['default'] = v
+                    kw["name"] = k
+                    ups[k] = UserParameter(**kw)
+                    kwargs.pop(k)
 
         new = super().configure_new(**kwargs)
         new.user_parameters.update(ups)
@@ -378,7 +381,7 @@ class Catalog(DataSource):
         return list(self)
 
     def __repr__(self):
-        return "<Intake catalog: %s>" % self.name
+        return f"<Intake catalog: {self.name}>"
 
     def __getattr__(self, item):
         # we need this special case here because the (deprecated) entry

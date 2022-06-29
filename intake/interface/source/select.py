@@ -82,7 +82,7 @@ class SourceSelector(BaseSelector):
     @property
     def cats(self):
         """Cats represented in the sources options"""
-        return set(source._catalog for source in self.items)
+        return {source._catalog for source in self.items}
 
     @cats.setter
     def cats(self, cats):

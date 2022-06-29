@@ -46,7 +46,10 @@ def main(description, subcommands, argv):
 
     '''
     if len(argv) == 1:
-        die("ERROR: Must specify subcommand, one of: %s" % nice_join(x.name for x in subcommands))
+        die(
+            f"ERROR: Must specify subcommand, one of: {nice_join((x.name for x in subcommands))}"
+        )
+
 
     parser = argparse.ArgumentParser(
         prog=argv[0],
@@ -66,4 +69,4 @@ def main(description, subcommands, argv):
     try:
         return args.invoke(args) or 0 # convert None to 0
     except Exception as e:
-        die("ERROR: " + repr(e))
+        die(f"ERROR: {repr(e)}")

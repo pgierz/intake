@@ -317,7 +317,7 @@ def test_dir(intake_server):
     assert len(catalog._entries._page_cache) == 2
     assert len(catalog._entries._direct_lookup_cache) == 0
     assert not catalog._entries.complete
-    assert set(key_completions) == set(['use_example1', 'nested'])
+    assert set(key_completions) == {'use_example1', 'nested'}
     assert 'metadata' in dir_  # a normal attribute
     assert 'use_example1' in dir_  # an entry from the first page
     assert 'arr' not in dir_  # an entry we haven't cached yet
@@ -424,7 +424,7 @@ def test_access_subcatalog(intake_server):
 def test_len(intake_server):
     remote_catalog = open_catalog(intake_server)
     local_catalog = open_catalog(TEST_CATALOG_PATH)
-    assert sum(1 for entry in local_catalog) == len(remote_catalog)
+    assert sum(1 for _ in local_catalog) == len(remote_catalog)
 
 
 def test_datetime(intake_server):

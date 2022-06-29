@@ -39,11 +39,7 @@ class Schema(dict):
             self['extra_metadata'] = {}
 
     def __repr__(self):
-        return ("<Schema instance>\n"
-                "dtype: {}\n"
-                "shape: {}\n"
-                "metadata: {}"
-                "".format(self.dtype, self.shape, self.extra_metadata))
+        return f"<Schema instance>\ndtype: {self.dtype}\nshape: {self.shape}\nmetadata: {self.extra_metadata}"
 
     def __getattr__(self, item):
         return self[item]
@@ -294,15 +290,16 @@ class DataSourceBase(DictSerialiseMixin):
         meta = kwargs.pop('metadata', self.metadata) or {}
         kwargs.update(dict(zip(inspect.signature(self.__init__).parameters,
                            self._captured_init_args)))
-        data = {
-            'sources':
-                {self.name: {
-                   'driver': self.classname,
-                   'description': self.description or "",
-                   'metadata': meta,
-                   'args': kwargs
-                }}}
-        return data
+        return {
+            'sources': {
+                self.name: {
+                    'driver': self.classname,
+                    'description': self.description or "",
+                    'metadata': meta,
+                    'args': kwargs,
+                }
+            }
+        }
 
     def yaml(self):
         """Return YAML representation of this data-source
@@ -412,7 +409,7 @@ class DataSourceBase(DictSerialiseMixin):
         if self._entry is not None:
             kw = {k: v for k, v in self._captured_init_kwargs.items()
                   if k in self._passed_kwargs}
-            kw.update(kwargs)
+            kw |= kwargs
             obj = self._entry(**kw)
             obj._entry = self._entry
             return obj
@@ -506,14 +503,13 @@ class PatternMixin(object):
 
         self._original_urlpath = urlpath
 
-        if self.path_as_pattern:
-            self._urlpath = path_to_glob(urlpath)
-        else:
-            self._urlpath = urlpath
-
-        if isinstance(self.path_as_pattern, bool):
-            if isinstance(urlpath, str) and self._urlpath == urlpath:
-                self.path_as_pattern = False
+        self._urlpath = path_to_glob(urlpath) if self.path_as_pattern else urlpath
+        if (
+            isinstance(self.path_as_pattern, bool)
+            and isinstance(urlpath, str)
+            and self._urlpath == urlpath
+        ):
+            self.path_as_pattern = False
 
     @property
     def pattern(self):

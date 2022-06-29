@@ -71,4 +71,4 @@ class Cache(Subcommand):
                 s = "%3.1f %s" % (total_size, unit)
                 break
             total_size /= 1024.0
-        print("%s: %s" % (conf['cache_dir'], s))
+        print(f"{conf['cache_dir']}: {s}")

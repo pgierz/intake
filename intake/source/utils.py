@@ -39,8 +39,10 @@ def _get_parts_of_format_string(resolved_string, literal_texts, format_specs):
     for i, literal_text in enumerate(literal_texts):
         if literal_text != '':
             if literal_text not in _text:
-                raise ValueError(("Resolved string must match pattern. "
-                                  "'{}' not found.".format(literal_text)))
+                raise ValueError(
+                    f"Resolved string must match pattern. '{literal_text}' not found."
+                )
+
             bit, _text = _text.split(literal_text, 1)
             if bit:
                 bits.append(bit)
@@ -49,13 +51,12 @@ def _get_parts_of_format_string(resolved_string, literal_texts, format_specs):
         else:
             try:
                 format_spec = _validate_format_spec(format_specs[i-1])
-                bits.append(_text[0:format_spec])
+                bits.append(_text[:format_spec])
                 _text = _text[format_spec:]
             except:
                 if i == len(format_specs) - 1:
                     format_spec = _validate_format_spec(format_specs[i])
-                    bits.append(_text[:-format_spec])
-                    bits.append(_text[-format_spec:])
+                    bits.extend((_text[:-format_spec], _text[-format_spec:]))
                     _text = []
                 else:
                     _validate_format_spec(format_specs[i-1])
@@ -185,8 +186,7 @@ def reverse_format(format_string, resolved_string):
 
     for i, conversion in enumerate(conversions):
         if conversion:
-            raise ValueError(('Conversion not allowed. Found on {}.'
-                              .format(field_names[i])))
+            raise ValueError(f'Conversion not allowed. Found on {field_names[i]}.')
 
     # ensure that resolved string is in posix format
     resolved_string = make_path_posix(resolved_string)
@@ -282,8 +282,7 @@ def path_to_pattern(path, metadata=None):
 
     pattern = strip_protocol(path)
     if metadata:
-        cache = metadata.get('cache')
-        if cache:
+        if cache := metadata.get('cache'):
             regex = next(c.get('regex') for c in cache if c.get('argkey') == 'urlpath')
             pattern = pattern.split(regex)[-1]
     return pattern
@@ -293,4 +292,4 @@ def unique_string():
     from string import ascii_letters, digits
     from random import choice
 
-    return ''.join([choice(ascii_letters + digits) for n in range(8)])
+    return ''.join([choice(ascii_letters + digits) for _ in range(8)])

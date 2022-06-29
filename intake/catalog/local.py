@@ -99,11 +99,13 @@ class UserParameter(DictSerialiseMixin):
     def expand_defaults(self, client=False, getenv=True, getshell=True):
         """Compile env, client_env, shell and client_shell commands
         """
-        if not isinstance(self._default, str):
-            self.expanded_default = self._default
-        else:
-            self.expanded_default = coerce(self.type, expand_defaults(
-                self._default, client, getenv, getshell))
+        self.expanded_default = (
+            coerce(
+                self.type, expand_defaults(self._default, client, getenv, getshell)
+            )
+            if isinstance(self._default, str)
+            else self._default
+        )
 
     def validate(self, value):
         """Does value meet parameter requirements?"""
@@ -117,14 +119,14 @@ class UserParameter(DictSerialiseMixin):
             return value
 
         if self.min is not None and value < self.min:
-            raise ValueError('%s=%s is less than %s' % (self.name, value,
-                                                        self.min))
+            raise ValueError(f'{self.name}={value} is less than {self.min}')
         if self.max is not None and value > self.max:
-            raise ValueError('%s=%s is greater than %s' % (
-                self.name, value, self.max))
+            raise ValueError(f'{self.name}={value} is greater than {self.max}')
         if self.allowed is not None and value not in self.allowed:
-            raise ValueError('%s=%s is not one of the allowed values: %s' % (
-                self.name, value, ','.join(map(str, self.allowed))))
+            raise ValueError(
+                f"{self.name}={value} is not one of the allowed values: {','.join(map(str, self.allowed))}"
+            )
+
 
         return value
 
@@ -184,17 +186,17 @@ class LocalCatalogEntry(CatalogEntry):
         if isinstance(driver, str):
             dr = get_plugin_class(driver)
             self._plugin = [dr] if dr is not None else []
-            containers = set(p.container for p in self._plugin)
+            containers = {p.container for p in self._plugin}
         elif isinstance(driver, list):
             self._plugin = [get_plugin_class(d) for d in driver]
             self._plugin = [p for p in self._plugin if p is not None]
-            containers = set(p.container for p in self._plugin)
+            containers = {p.container for p in self._plugin}
         elif isinstance(driver, dict):
             self._plugin = {d: get_plugin_class(driver[d]['class'])
                             for d in driver}
             self._plugin = {k: v for k, v in self._plugin.items()
                             if v is not None}
-            containers = set(p.container for p in self._plugin.values())
+            containers = {p.container for p in self._plugin.values()}
         elif inspect.isclass(driver) and issubclass(driver, DataSource):
             self._plugin = [driver]
             containers = {driver.container}
@@ -209,7 +211,7 @@ class LocalCatalogEntry(CatalogEntry):
         if len(containers) == 0:
             # this is only debug, this single entry won't work, but cat is OK.
             # you get an error if you try to actually use this entry
-            logger.debug('No plugins for entry: %s' % self.name)
+            logger.debug(f'No plugins for entry: {self.name}')
             containers = [None]
         self._container = list(containers)[0]
         super(LocalCatalogEntry, self).__init__(
@@ -249,7 +251,7 @@ class LocalCatalogEntry(CatalogEntry):
         params = {'metadata': md,
                   'CATALOG_DIR': self._catalog_dir,
                   }
-        params.update(self._open_args)
+        params |= self._open_args
         if ('storage_options' not in params
                 and self._filesystem is not None
                 and self._filesystem.storage_options
@@ -310,7 +312,7 @@ class LocalCatalogEntry(CatalogEntry):
 class CatalogParser(object):
     """Loads entries from a YAML spec"""
     def __init__(self, data, getenv=True, getshell=True, context=None):
-        self._context = context if context else {}
+        self._context = context or {}
         self._errors = []
         self._warnings = []
         self.getenv = getenv
@@ -386,16 +388,19 @@ class CatalogParser(object):
         if key in obj:
             if isinstance(obj[key], dtype):
                 if choices and obj[key] not in choices:
-                    self.error("value '{}' is invalid (choose from {})".format(
-                        obj[key], choices), obj, key)
+                    self.error(f"value '{obj[key]}' is invalid (choose from {choices})", obj, key)
                 else:
                     return obj[key]
             else:
-                self.error("value '{}' is not expected type '{}'".format(
-                    obj[key], dtype.__name__), obj, key)
+                self.error(
+                    f"value '{obj[key]}' is not expected type '{dtype.__name__}'",
+                    obj,
+                    key,
+                )
+
             return None
         elif required:
-            self.error("missing required key '{}'".format(key), obj)
+            self.error(f"missing required key '{key}'", obj)
             return None
         elif default:
             return default
@@ -461,17 +466,19 @@ class CatalogParser(object):
 
             for name, parameter in data['parameters'].items():
                 if not isinstance(name, str):
-                    self.error("key '{}' must be a string".format(name),
-                               data['parameters'], name)
+                    self.error(f"key '{name}' must be a string", data['parameters'], name)
                     continue
 
                 if not isinstance(parameter, dict):
-                    self.error("value of key '{}' must be a dictionary"
-                               "".format(name), data['parameters'], name)
+                    self.error(
+                        f"value of key '{name}' must be a dictionary",
+                        data['parameters'],
+                        name,
+                    )
+
                     continue
 
-                obj = self._parse_user_parameter(name, parameter)
-                if obj:
+                if obj := self._parse_user_parameter(name, parameter):
                     ds['parameters'].append(obj)
 
         return LocalCatalogEntry(catalog_dir=self._context['root'],
@@ -495,17 +502,19 @@ class CatalogParser(object):
 
         for name, source in data['sources'].items():
             if not isinstance(name, str):
-                self.error("key '{}' must be a string".format(name),
-                           data['sources'], name)
+                self.error(f"key '{name}' must be a string", data['sources'], name)
                 continue
 
             if not isinstance(source, dict):
-                self.error("value of key '{}' must be a dictionary"
-                           "".format(name), data['sources'], name)
+                self.error(
+                    f"value of key '{name}' must be a dictionary",
+                    data['sources'],
+                    name,
+                )
+
                 continue
 
-            obj = self._parse_data_source(name, source)
-            if obj:
+            if obj := self._parse_data_source(name, source):
                 sources.append(obj)
 
         return sources
@@ -540,7 +549,7 @@ def get_dir(path):
         out = get_filesystem_class(protocol)._parent(path)
         if "://" not in out:
             # some FSs strip this, some do not
-            out = protocol + "://" + out
+            out = f"{protocol}://{out}"
         return out
     path = make_path_posix(
         os.path.join(os.getcwd(), os.path.dirname(path)))
@@ -761,20 +770,18 @@ class YAMLFilesCatalog(Catalog):
         self._entries.clear()
         options = self.storage_options or {}
         if isinstance(self.path, (list, tuple)):
-            files = sum([open_files(p, mode='rb', **options)
-                         for p in self.path], [])
+            files = sum((open_files(p, mode='rb', **options) for p in self.path), [])
             self.name = self.name or "%i files" % len(files)
             self.description = self.description or f'Catalog generated from {len(files)} files'
             self.path = [make_path_posix(p) for p in self.path]
         else:
             if isinstance(self.path, str) and '*' not in self.path:
-                self.path = self.path + '/*'
+                self.path = f'{self.path}/*'
             files = open_files(self.path, mode='rb', **options)
             self.path = make_path_posix(self.path)
             self.name = self.name or self.path
             self.description = self.description or f'Catalog generated from all files found in {self.path}'
-        if not set(f.path for f in files) == set(
-                f.path for f in self._cat_files):
+        if {f.path for f in files} != {f.path for f in self._cat_files}:
             # glob changed, reload all
             self._cat_files = files
             self._cats.clear()
@@ -785,9 +792,18 @@ class YAMLFilesCatalog(Catalog):
             kwargs['path'] = f.path
             d = make_path_posix(os.path.dirname(f.path))
             if f.path not in self._cats:
-                entry = LocalCatalogEntry(name, "YAML file: %s" % name,
-                                          'yaml_file_cat', True,
-                                          kwargs, [], [], self.metadata, d)
+                entry = LocalCatalogEntry(
+                    name,
+                    f"YAML file: {name}",
+                    'yaml_file_cat',
+                    True,
+                    kwargs,
+                    [],
+                    [],
+                    self.metadata,
+                    d,
+                )
+
                 if self._flatten:
                     # store a concrete Catalog
                     try:
@@ -805,13 +821,12 @@ class YAMLFilesCatalog(Catalog):
         for name, entry in list(self._cats.items()):
             if self._flatten:
                 entry.reload()
-                inter = set(entry._entries).intersection(entries)
-                if inter:
+                if inter := set(entry._entries).intersection(entries):
                     raise ValueError(
                         'Conflicting names when flattening multiple'
                         ' catalogs. Sources %s exist in more than'
                         ' one' % inter)
-                entries.update(entry._entries)
+                entries |= entry._entries
             else:
                 entries[entry._name] = entry
         self._entries.update(entries)

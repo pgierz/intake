@@ -42,6 +42,6 @@ class Precache(Subcommand):
                 s = catalog[entry]
                 s.read()
                 if s.cache:
-                    print("Caching for entry %s" % entry)
+                    print(f"Caching for entry {entry}")
             except Exception as e:
-                print("Skipping {} due to {}".format(entry, e))
+                print(f"Skipping {entry} due to {e}")

@@ -129,9 +129,9 @@ class Search(Base):
         for cat in self.cats:
             new_cat = cat.search(self.inputs.text,
                                  depth=self.inputs.depth)
-            if len(list(new_cat)) > 0:
+            if list(new_cat):
                 new_cats.append(new_cat)
-        if len(new_cats) > 0:
+        if new_cats:
             self.done_callback(new_cats)
             self.visible = False
 

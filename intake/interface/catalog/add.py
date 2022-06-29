@@ -54,8 +54,10 @@ class FileSelector(Base):
         super().__init__(**kwargs)
 
     def setup(self):
-        self.path_text = pn.widgets.TextInput(value=os.getcwd() + '/',
-                                              width_policy='max')
+        self.path_text = pn.widgets.TextInput(
+            value=f'{os.getcwd()}/', width_policy='max'
+        )
+
         self.protocol = pn.widgets.Select(options=list(sorted(known_implementations)),
                                           value='file', name='protocol')
         self.storage_options = pn.widgets.TextInput(name='kwargs',
@@ -101,8 +103,9 @@ class FileSelector(Base):
     @property
     def url(self):
         """Path to local catalog file"""
-        return (self.protocol.value + "://" +
-                os.path.join(self.path, self.main.value[0]))
+        return f"{self.protocol.value}://" + os.path.join(
+            self.path, self.main.value[0]
+        )
 
     def move_up(self, arg=None):
         self.path_text.value = self.fs._parent(self.path_text.value)
@@ -114,10 +117,7 @@ class FileSelector(Base):
 
     def validate(self, arg=None):
         """Check that inputted path is valid - set validator accordingly"""
-        if os.path.isdir(self.path):
-            self.validator.object = None
-        else:
-            self.validator.object = ICONS['error']
+        self.validator.object = None if os.path.isdir(self.path) else ICONS['error']
 
     def make_options(self, arg=None):
         if self.done_callback:
@@ -129,7 +129,7 @@ class FileSelector(Base):
                 if bn.startswith('.'):
                     continue
                 elif f['type'] == 'directory':
-                    out.append(bn + '/')
+                    out.append(f'{bn}/')
                 elif not self.filters or any(bn.endswith(ext) for ext in self.filters):
                     out.append(bn)
         except Exception as e:
@@ -270,10 +270,7 @@ class CatAdder(Base):
     def cat_url(self):
         """URL to remote files or path to local files. Depends on active tab."""
         url = self.selectors[self.tabs.active].url
-        if self.selectors[self.tabs.active] is self.fs:
-            fs = self.fs.fs
-        else:
-            fs = None
+        fs = self.fs.fs if self.selectors[self.tabs.active] is self.fs else None
         return url, fs
 
     @property
@@ -281,10 +278,7 @@ class CatAdder(Base):
         """Catalog object initialized from from cat_url"""
         # might want to do some validation in here
         url, fs = self.cat_url
-        if fs:
-            return intake.open_catalog(url, fs=fs)
-        else:
-            return intake.open_catalog(url)
+        return intake.open_catalog(url, fs=fs) if fs else intake.open_catalog(url)
 
     def add_cat(self, arg=None):
         """Add cat and close panel"""

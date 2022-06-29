@@ -370,7 +370,7 @@ def test_persist_local_cat(temp_cache):
 
 def test_empty_catalog():
     cat = open_catalog()
-    assert list(cat) == []
+    assert not list(cat)
 
 
 def test_nonexistent_error():
@@ -423,7 +423,7 @@ def test_catalog_file_removal(temp_catalog_file):
 
     os.remove(temp_catalog_file)
     time.sleep(0.5)  # wait for catalog refresh
-    assert set(cat) == set()
+    assert not set(cat)
 
 
 def test_flatten_duplicate_error():
@@ -490,7 +490,7 @@ def test_cat_with_no_declared_name_gets_name_from_dir_if_file_named_catalog():
 
     cat = open_catalog(fn)
     assert cat.name == 'tests'
-    assert cat.description == None
+    assert cat.description is None
 
 
 def test_default_expansions():
@@ -762,7 +762,7 @@ def test_cat_add(tmpdir):
     with open(fn, 'w') as f:
         f.write('sources: {}')
     cat = open_catalog(fn)
-    assert list(cat) == []
+    assert not list(cat)
 
     # was added in memory
     cat.add(cat)

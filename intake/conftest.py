@@ -91,10 +91,10 @@ def intake_server(request):
     # Catalog path comes from the test module
     path = request.module.TEST_CATALOG_PATH
     if isinstance(path, list):
-        catalog_path = [p + '/*' for p in path]
+        catalog_path = [f'{p}/*' for p in path]
     elif isinstance(path, str) and not path.endswith(
             '.yml') and not path.endswith('.yaml'):
-        catalog_path = path + '/*'
+        catalog_path = f'{path}/*'
     else:
         catalog_path = path
     server_conf = getattr(request.module, 'TEST_SERVER_CONF', None)
@@ -149,7 +149,7 @@ def http_server():
     else:
         cmd = ['python', '-m', 'http.server', port_as_str]
     p = subprocess.Popen(cmd, cwd=os.path.join(here, 'catalog', 'tests'))
-    url = 'http://localhost:{}/'.format(port_as_str)
+    url = f'http://localhost:{port_as_str}/'
     timeout = 5
     while True:
         try:
@@ -220,7 +220,7 @@ def inherit_params_multiple_cats():
         tmp_path = posixpath.join(tmp_dir, "intake")
         copy_test_file("catalog_inherit_params.yml", tmp_path)
         copy_test_file("catalog_nested_sub.yml", tmp_path)
-        return open_catalog(tmp_path + "/*.yml")
+        return open_catalog(f"{tmp_path}/*.yml")
 
 
 @pytest.fixture

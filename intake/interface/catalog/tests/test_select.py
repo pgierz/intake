@@ -73,7 +73,7 @@ def test_catalog_browser_add_nested_catalog(cat_browser, parent_cat):
 
 def test_catalog_browser_select_cat_by_widget(cat_browser, cat1):
     cat_browser.selected = []
-    assert cat_browser.selected == []
+    assert not cat_browser.selected
     assert_widget_matches(cat_browser)
 
     cat_browser.widget.value = [cat1]

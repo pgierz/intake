@@ -32,7 +32,7 @@ def cat_adder():
 
 
 def test_file_selector(file_selector):
-    assert file_selector.path == os.getcwd() + '/'
+    assert file_selector.path == f'{os.getcwd()}/'
 
 
 def test_file_selector_raises_error_if_no_file_selected(file_selector):
@@ -49,7 +49,7 @@ def test_file_selector_edit_path(file_selector):
 
 
 def test_file_selector_go_home(file_selector):
-    expected = os.getcwd() + '/'
+    expected = f'{os.getcwd()}/'
     assert file_selector.path == expected
     file_selector.move_up()
     file_selector.go_home()
@@ -57,14 +57,14 @@ def test_file_selector_go_home(file_selector):
 
 
 def test_file_selector_move_up(file_selector):
-    assert file_selector.path == os.getcwd() + '/'
+    assert file_selector.path == f'{os.getcwd()}/'
     file_selector.move_up()
     expected = os.path.abspath('..')
     assert file_selector.path == expected
 
 
 def test_file_selector_move_down(file_selector):
-    expected = os.getcwd() + '/'
+    expected = f'{os.getcwd()}/'
     dirname = expected.split('/')[-2] + '/'
 
     # move up so that we know we will be able to move down into
@@ -76,7 +76,7 @@ def test_file_selector_move_down(file_selector):
     assert file_selector.path == expected
 
     # should empty the selection on main
-    assert file_selector.main.value == []
+    assert not file_selector.main.value
 
 def test_url_selector(url_selector):
     assert url_selector.url == ''
@@ -85,7 +85,7 @@ def test_url_selector(url_selector):
 
 def test_url_selector_set_visible_to_false(url_selector):
     url_selector.visible = False
-    assert url_selector.visible is False
+    assert not url_selector.visible
     assert len(url_selector.panel.objects) == 0
 
 

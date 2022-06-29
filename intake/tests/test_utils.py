@@ -56,7 +56,7 @@ def copy_test_file(filename, target_dir):
     # Put a catalog file in the user catalog directory
     test_dir = make_path_posix(os.path.dirname(__file__))
     test_catalog = posixpath.join(test_dir, filename)
-    target_catalog = posixpath.join(target_dir, '__unit_test_'+filename)
+    target_catalog = posixpath.join(target_dir, f'__unit_test_{filename}')
 
     shutil.copyfile(test_catalog, target_catalog)
     return target_catalog

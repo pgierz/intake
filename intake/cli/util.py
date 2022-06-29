@@ -66,7 +66,7 @@ def nice_join(seq, sep=", ", conjunction="or"):
     if len(seq) <= 1 or conjunction is None:
         return sep.join(seq)
     else:
-        return "%s %s %s" % (sep.join(seq[:-1]), conjunction, seq[-1])
+        return f"{sep.join(seq[:-1])} {conjunction} {seq[-1]}"
 
 def print_entry_info(catalog, name):
     '''
@@ -74,7 +74,7 @@ def print_entry_info(catalog, name):
     '''
     info = catalog[name].describe()
     for key in sorted(info.keys()):
-        print("[{}] {}={}".format(name, key, info[key]))
+        print(f"[{name}] {key}={info[key]}")
 
 class Subcommand(object):
     ''' Abstract base class for subcommands

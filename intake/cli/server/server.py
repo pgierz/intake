@@ -29,7 +29,7 @@ class IntakeServer(object):
         self._cache = SourceCache()
         self._periodic_callbacks = []
         auth = conf.get('auth', 'intake.auth.base.BaseAuth')
-        logger.debug('auth: %s' % auth)
+        logger.debug(f'auth: {auth}')
         self._auth = remake_instance(auth)
 
     def get_handlers(self):
@@ -121,7 +121,7 @@ class ServerInfoHandler(tornado.web.RequestHandler):
             try:
                 length = len(cat)
             except TypeError:
-                length = sum(1 for entry in cat)
+                length = sum(1 for _ in cat)
             server_info = dict(version=__version__, sources=sources,
                                length=length,
                                metadata=cat.metadata)
@@ -143,7 +143,7 @@ class SourceCache(object):
         now = time.time()
         self._sources[source_id] = dict(source=source, open_time=now,
                                         last_time=now)
-        logger.debug('Adding %s to cache, uuid %s' % (source, source_id))
+        logger.debug(f'Adding {source} to cache, uuid {source_id}')
         return source_id
 
     def get(self, uuid):
@@ -172,7 +172,7 @@ class SourceCache(object):
         # Make a copy of the items so we can mutate the dictionary
         for uuid, record in list(self._sources.items()):
             if record['last_time'] < threshold:
-                logger.debug('Removing source %s from cache' % uuid)
+                logger.debug(f'Removing source {uuid} from cache')
                 del self._sources[uuid]
 
 
@@ -238,8 +238,8 @@ class ServerSourceHandler(tornado.web.RequestHandler):
         request = msgpack.unpackb(self.request.body, **unpack_kwargs)
         action = request['action']
         head = self.request.headers
-        logger.debug('Source POST: %s' % request)
-        
+        logger.debug(f'Source POST: {request}')
+
         if action == 'search':
             if 'source-id' in head:
                 cat = self._cache.get(head['source-id'])
@@ -299,7 +299,7 @@ class ServerSourceHandler(tornado.web.RequestHandler):
 
             if direct_access == 'forbid' or \
                     (direct_access == 'allow' and not client_has_plugin):
-                logger.debug("Opening entry %s" % entry)
+                logger.debug(f"Opening entry {entry}")
                 source = entry.configure_new(**user_parameters)
                 try:
                     source.on_server = True
@@ -311,12 +311,13 @@ class ServerSourceHandler(tornado.web.RequestHandler):
                                                 log_message="Discover failed",
                                                 reason=str(e))
                 source_id = self._cache.add(source)
-                logger.debug('Container: %s, ID: %s' % (source.container,
-                                                        source_id))
-                response = dict(source._schema or {})
-                response.update(dict(container=source.container,
-                                     source_id=source_id,
-                                     metadata=source.metadata))
+                logger.debug(f'Container: {source.container}, ID: {source_id}')
+                response = dict(source._schema or {}) | dict(
+                    container=source.container,
+                    source_id=source_id,
+                    metadata=source.metadata,
+                )
+
                 self.write(msgpack.packb(response, **pack_kwargs))
                 self.finish()
             elif direct_access == 'force' and not client_has_plugin:
@@ -344,7 +345,7 @@ class ServerSourceHandler(tornado.web.RequestHandler):
                                                accepted_compression,
                                                source.container)
 
-            logger.debug("Read partition %s" % partition)
+            logger.debug(f"Read partition {partition}")
             if partition is not None:
                 chunk = source.read_partition(partition)
             else:

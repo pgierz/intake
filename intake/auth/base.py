@@ -56,8 +56,7 @@ class BaseAuth(DictSerialiseMixin):
         for k, v in dictionary.items():
             if lower_key == k.lower():
                 return v
-        else:
-            return default
+        return default
 
 
 class BaseClientAuth(object):

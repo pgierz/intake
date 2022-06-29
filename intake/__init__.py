@@ -46,18 +46,14 @@ def __getattr__(attr):
     if attr in openers and attr[:5] == "open_":
         driver = registry[attr[5:]]  # "open_..."
         gl[attr] = driver
-    else:
-        if attr in gl:
-            return gl[attr]
-        elif attr in imports:
-            dest = imports[attr]
-            modname = dest.split(":", 1)[0]
-            logger.debug("Importing: %s" % modname)
-            mod = importlib.import_module(modname)
-            if ":" in dest:
-                gl[attr] = getattr(mod, dest.split(":")[1])
-            else:
-                gl[attr] = mod
+    elif attr in gl:
+        return gl[attr]
+    elif attr in imports:
+        dest = imports[attr]
+        modname = dest.split(":", 1)[0]
+        logger.debug(f"Importing: {modname}")
+        mod = importlib.import_module(modname)
+        gl[attr] = getattr(mod, dest.split(":")[1]) if ":" in dest else mod
     if attr == "__all__":
         return __dir__()
     try:
@@ -76,7 +72,7 @@ def make_open_functions():
 
     for name in drivers.enabled_plugins():
 
-        func_name = 'open_' + name
+        func_name = f'open_{name}'
         if not func_name.isidentifier():
             # primitive name normalization
             func_name = re.sub('[-=~^&|@+]', '_', func_name)
@@ -138,31 +134,27 @@ def open_catalog(uri=None, **kwargs):
                 driver = 'yaml_files_cat'
             elif isinstance(uri, (list, tuple)) and len(uri) == 1:
                 uri = uri[0]
-                if "*" in uri[0]:
-                    # single glob string in a list
-                    driver = 'yaml_files_cat'
-                else:
-                    # single filename in a list
-                    driver = 'yaml_file_cat'
+                driver = 'yaml_files_cat' if "*" in uri[0] else 'yaml_file_cat'
             elif isinstance(uri, str):
                 # single URL
                 if uri.startswith('intake:'):
                     # server
                     driver = 'intake_remote'
+                elif uri.endswith(('.yml', '.yaml')):
+                    driver = 'yaml_file_cat'
                 else:
-                    if uri.endswith(('.yml', '.yaml')):
-                        driver = 'yaml_file_cat'
-                    else:
-                        uri = uri.rstrip('/') + '/*.y*ml'
-                        driver = 'yaml_files_cat'
+                    uri = uri.rstrip('/') + '/*.y*ml'
+                    driver = 'yaml_files_cat'
             else:
-                raise ValueError("URI not understood: %s" % uri)
+                raise ValueError(f"URI not understood: {uri}")
         else:
             # empty cat
             driver = 'catalog'
     if '_file' not in driver:
         kwargs.pop('fs', None)
     if driver not in registry:
-        raise ValueError('Unknown catalog driver (%s), supply one of: %s'
-                         % (driver, list(sorted(registry))))
+        raise ValueError(
+            f'Unknown catalog driver ({driver}), supply one of: {list(sorted(registry))}'
+        )
+
     return registry[driver](uri, **kwargs)

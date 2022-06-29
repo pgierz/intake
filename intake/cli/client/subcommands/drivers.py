@@ -62,9 +62,11 @@ class Drivers(Subcommand):
             print()
 
         print("Entrypoints:")
-        eps = [ep for ep in drivers.from_entrypoints()
-               if ep.name not in drivers.disabled()]
-        if eps:
+        if eps := [
+            ep
+            for ep in drivers.from_entrypoints()
+            if ep.name not in drivers.disabled()
+        ]:
             for v in eps:
                 print(f'{v.name:<30}{v.module_name}:{v.object_name}')
         else:
@@ -72,9 +74,9 @@ class Drivers(Subcommand):
         print()
 
         print("From Config:")
-        eps = [ep for ep in drivers.from_conf()
-               if ep.name not in drivers.disabled()]
-        if eps:
+        if eps := [
+            ep for ep in drivers.from_conf() if ep.name not in drivers.disabled()
+        ]:
             for v in eps:
                 if v.name not in drivers.disabled():
                     print(f'{v.name:<30}{v.module_name}:{v.object_name}')

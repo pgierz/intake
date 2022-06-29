@@ -135,9 +135,7 @@ class CatSelector(BaseSelector):
         parents = {cat.cat for cat in nested}
         parents_to_remove = cats
         while len(parents_to_remove) > 0 and nestedness > 0:
-            for cat in nested:
-                if cat.cat in parents_to_remove:
-                    children.append(cat)
+            children.extend(cat for cat in nested if cat.cat in parents_to_remove)
             removed = removed.union(parents_to_remove)
             nested = [cat for cat in nested if cat not in children]
             parents_to_remove = {c for c in children if c in parents - removed}

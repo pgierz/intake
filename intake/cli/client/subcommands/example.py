@@ -52,7 +52,7 @@ class Example(Subcommand):
             src_name = join(src_dir, filename)
             dest_name = filename
             dest_dir = dirname(filename)
-            print('  Writing %s' % filename)
+            print(f'  Writing {filename}')
             if dest_dir != '' and not exists(dest_dir):
                 os.mkdir(dest_dir)
             shutil.copyfile(src_name, dest_name)

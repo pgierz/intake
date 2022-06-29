@@ -16,7 +16,7 @@ from intake.source.base import DataSource
 
 def test_store(temp_cache):
     from dask.base import tokenize
-    assert list(store) == []
+    assert not list(store)
     s = DataSource(metadata={'original_name': 'blah'})
     token = tokenize(s)
     store.add(token, s)
@@ -30,13 +30,13 @@ def test_store(temp_cache):
     store.remove(s)
     time.sleep(0.2)
 
-    assert list(store) == []
+    assert not list(store)
     assert os.path.exists(store.pdir)
     store.clear()
     time.sleep(0.2)
 
     assert not os.path.exists(store.pdir)
-    assert list(store) == []
+    assert not list(store)
 
 
 def test_backtrack(temp_cache):

@@ -159,7 +159,7 @@ def check_df_parts(parts):
 
 
 def test_datasource_read_chunked(source_dataframe):
-    parts = [p for p in source_dataframe.read_chunked()]
+    parts = list(source_dataframe.read_chunked())
 
     check_df_parts(parts)
 
@@ -246,8 +246,7 @@ class MockDataSourcePython(base.DataSource):
             raise Exception('This should never happen')
 
     def read(self):
-        return sum([self._get_partition(i) for i in range(self.npartitions)],
-               [])
+        return sum((self._get_partition(i) for i in range(self.npartitions)), [])
 
     def to_dask(self):
         import dask.bag as db

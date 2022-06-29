@@ -27,7 +27,7 @@ class SecretAuth(BaseAuth):
     def __init__(self, secret=None, key='intake-secret'):
         if secret is None:
             secret = uuid.uuid1().hex
-            logger.info('Random server secret: %s' % secret)
+            logger.info(f'Random server secret: {secret}')
         self.secret = secret
         self.key = key
 

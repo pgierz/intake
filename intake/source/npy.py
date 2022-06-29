@@ -73,10 +73,7 @@ class NPySource(DataSource):
             self.chunks = (self._chunks, ) + (-1, ) * (len(self.shape) - 1)
             self._arrs = [da.from_array(arr, self.chunks) for arr in arrs]
 
-            if len(self._arrs) > 1:
-                self._arr = da.stack(self._arrs)
-            else:
-                self._arr = self._arrs[0]
+            self._arr = da.stack(self._arrs) if len(self._arrs) > 1 else self._arrs[0]
             self.chunks = self._arr.chunks
         return Schema(dtype=str(self.dtype), shape=self.shape,
                       extra_metadata=self.metadata,

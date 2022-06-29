@@ -84,9 +84,7 @@ class GUI(Base):
     @property
     def item(self):
         """Item that is selected"""
-        if len(self.sources) == 0:
-            return None
-        return self.sources[0]
+        return None if len(self.sources) == 0 else self.sources[0]
 
     def __getstate__(self):
         """Serialize the current state of the object"""

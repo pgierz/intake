@@ -59,7 +59,7 @@ class PersistStore(YAMLFileCatalog):
         try:
             self.fs.rm(subdir, True)
         except Exception as e:
-            logger.debug("Directory clear failed: %s" % e)
+            logger.debug(f"Directory clear failed: {e}")
         self.fs.mkdirs(subdir)
         return subdir
 
@@ -130,7 +130,7 @@ class PersistStore(YAMLFileCatalog):
             try:
                 self.fs.rm(path, True)
             except Exception:
-                logger.debug("Failed to delete persisted data dir %s" % path)
+                logger.debug(f"Failed to delete persisted data dir {path}")
         self._entries.pop(source, None)
 
     def clear(self):
@@ -168,7 +168,7 @@ class PersistStore(YAMLFileCatalog):
         token = tokenize(source)
         if token in self:
             s0 = self[token]
-            if self[token].metadata.get('ttl', None):
+            if s0.metadata.get('ttl', None):
                 then = s0.metadata['timestamp']
                 if s0.metadata['ttl'] < then - now:
                     return True

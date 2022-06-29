@@ -51,7 +51,7 @@ class Description(BaseView):
         """When the source gets updated, update the pane object"""
         BaseView.source.fset(self, source)
         if self.main_pane:
-            self.main_pane.object = """```yaml\n{}\n```""".format(self.contents)
+            self.main_pane.object = f"""```yaml\n{self.contents}\n```"""
 
     @property
     def contents(self):

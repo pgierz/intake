@@ -38,7 +38,7 @@ try:
                 self.setup()
                 self.select.visible = True
                 self.description.visible = True
-            elif not visible:
+            else:
                 self.unwatch()
                 # do children
                 self.select.visible = False
@@ -84,7 +84,7 @@ try:
                 self.description.visible = True
                 if len(self.control_panel.objects) == 0:
                     self.control_panel.extend(self.controls)
-            elif not visible:
+            else:
                 self.unwatch()
                 # do children
                 self.select.visible = False
@@ -97,9 +97,7 @@ try:
         @property
         def item(self):
             """Item that is selected"""
-            if len(self.sources) == 0:
-                return None
-            return self.sources[0]
+            return None if len(self.sources) == 0 else self.sources[0]
 
 except ImportError:
 

@@ -68,11 +68,7 @@ class ZarrGroupCatalog(Catalog):
                     root = zarr.open_group(store=store, mode='r')
 
             # deal with component path
-            if self._component is None:
-                self._grp = root
-            else:
-                self._grp = root[self._component]
-
+            self._grp = root if self._component is None else root[self._component]
             # use zarr attributes as metadata
             self.metadata.update(self._grp.attrs.asdict())
 

@@ -71,11 +71,11 @@ class Base(object):
 
     @property
     def panel(self):
-        if not self.logo:
-            return self._panel
-        return pn.Row(self.logo_panel,
-                      self._panel,
-                      margin=0)
+        return (
+            pn.Row(self.logo_panel, self._panel, margin=0)
+            if self.logo
+            else self._panel
+        )
 
     @panel.setter
     def panel(self, panel):
@@ -243,9 +243,7 @@ class BaseSelector(Base):
         Over-writes existing selection
         """
         def preprocess(item):
-            if isinstance(item, str):
-                return self.options[item]
-            return item
+            return self.options[item] if isinstance(item, str) else item
         items = coerce_to_list(new, preprocess)
         self.widget.value = items
 

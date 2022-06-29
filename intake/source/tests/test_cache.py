@@ -207,9 +207,9 @@ def test_compressions(temp_cache, tempdir, comp):
         subprocess.call(shlex.split('tar -cf {fn}.tar {fn} -C {d}'.format(
             fn=fn, d=tempdir)))
     elif comp == 'gz':
-        subprocess.call(shlex.split('gzip ' + fn))
+        subprocess.call(shlex.split(f'gzip {fn}'))
     elif comp == 'bz':
-        subprocess.call(shlex.split('bzip2 ' + fn))
+        subprocess.call(shlex.split(f'bzip2 {fn}'))
     fn = os.path.join(
         tempdir,
         [f for f in os.listdir(tempdir) if f.startswith('data.')][0])

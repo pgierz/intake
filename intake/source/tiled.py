@@ -51,11 +51,10 @@ class TiledCatalog(Catalog):
 
         Queries other than full text will be added later
         """
-        if type == "text":
-            from tiled.queries import FullText
-            q = FullText(query)
-        else:
+        if type != "text":
             raise NotImplementedError
+        from tiled.queries import FullText
+        q = FullText(query)
         return TiledCatalog.from_dict(self._entries.search(q), uri=self.uri, path=self.path)
 
     def __getitem__(self, item):
@@ -108,7 +107,7 @@ class TiledSource(DataSource):
         self.instance = instance
         md = dict(instance.metadata)
         if metadata:
-            md.update(metadata)
+            md |= metadata
         super().__init__(metadata=md)
         self.name = path
         self.container = types[type(self.instance).__name__]
