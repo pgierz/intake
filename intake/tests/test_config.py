@@ -52,7 +52,7 @@ def test_basic():
             assert r.ok
     with temp_conf({}) as fn:
         env = os.environ.copy()
-        env['INTAKE_CONF'] = os.path.dirname(fn) + ":/nonexistent"
+        env['INTAKE_CONF'] = f"{os.path.dirname(fn)}:/nonexistent"
         with server(env=env, wait=5000):
             r = requests.get('http://localhost:5000/v1/info')
             assert r.ok

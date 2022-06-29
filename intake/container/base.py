@@ -114,9 +114,8 @@ def get_partition(url, headers, source_id, container, partition):
         compression = msg['compression']
         compressor = serializer.compression_registry[compression]
         encoder = serializer.format_registry[format]
-        chunk = encoder.decode(compressor.decompress(msg['data']),
-                               container)
-        return chunk
+        return encoder.decode(compressor.decompress(msg['data']), container)
+
     finally:
         if resp is not None:
             resp.close()

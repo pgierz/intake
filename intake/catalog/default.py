@@ -19,10 +19,7 @@ from .local import YAMLFilesCatalog, Catalog
 def load_user_catalog():
     """Return a catalog for the platform-specific user Intake directory"""
     cat_dir = user_data_dir()
-    if not os.path.isdir(cat_dir):
-        return Catalog()
-    else:
-        return YAMLFilesCatalog(cat_dir)
+    return YAMLFilesCatalog(cat_dir) if os.path.isdir(cat_dir) else Catalog()
 
 
 def user_data_dir():
@@ -33,10 +30,7 @@ def user_data_dir():
 def load_global_catalog():
     """Return a catalog for the environment-specific Intake directory"""
     cat_dir = global_data_dir()
-    if not os.path.isdir(cat_dir):
-        return Catalog()
-    else:
-        return YAMLFilesCatalog(cat_dir)
+    return YAMLFilesCatalog(cat_dir) if os.path.isdir(cat_dir) else Catalog()
 
 
 CONDA_VAR = 'CONDA_PREFIX'
@@ -83,16 +77,13 @@ def load_combo_catalog():
     desc = 'Generated from data packages found on your intake search path'
     cat_dirs = []
     if os.path.isdir(user_dir):
-        cat_dirs.append(user_dir + '/*.yaml')
-        cat_dirs.append(user_dir + '/*.yml')
+        cat_dirs.extend((f'{user_dir}/*.yaml', f'{user_dir}/*.yml'))
     if os.path.isdir(global_dir):
-        cat_dirs.append(global_dir + '/*.yaml')
-        cat_dirs.append(global_dir + '/*.yml')
+        cat_dirs.extend((f'{global_dir}/*.yaml', f'{global_dir}/*.yml'))
     for path_dir in conf.get('catalog_path', []):
         if path_dir != '':
             if not path_dir.endswith(('yaml', 'yml')):
-                cat_dirs.append(path_dir + '/*.yaml')
-                cat_dirs.append(path_dir + '/*.yml')
+                cat_dirs.extend((f'{path_dir}/*.yaml', f'{path_dir}/*.yml'))
             else:
                 cat_dirs.append(path_dir)
 

@@ -41,12 +41,12 @@ class Info(Subcommand):
 
     def invoke(self, args):
         print("Python version      :  %s" % sys.version.split('\n')[0])
-        print("IPython version     :  %s" % _version_from_module('IPython'))
-        print("Tornado version     :  %s" % _version_from_module('tornado', 'version'))
-        print("Dask version        :  %s" % _version_from_module('dask'))
-        print("Pandas version      :  %s" % _version_from_module('pandas'))
-        print("Numpy version       :  %s" % _version_from_module('numpy'))
-        print("Intake version      :  %s" % __version__)
+        print(f"IPython version     :  {_version_from_module('IPython')}")
+        print(f"Tornado version     :  {_version_from_module('tornado', 'version')}")
+        print(f"Dask version        :  {_version_from_module('dask')}")
+        print(f"Pandas version      :  {_version_from_module('pandas')}")
+        print(f"Numpy version       :  {_version_from_module('numpy')}")
+        print(f"Intake version      :  {__version__}")
 
 def _version_from_module(modname, version_attr="__version__"):
     try:

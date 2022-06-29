@@ -127,7 +127,7 @@ sources:
 
 
 def test_reload_missing_local_directory(tempdir):
-    catalog = open_catalog(tempdir + '/*', ttl=0.1)
+    catalog = open_catalog(f'{tempdir}/*', ttl=0.1)
     assert_items_equal(list(catalog), [])
 
     with open(os.path.join(tempdir, YAML_FILENAME), 'w') as f:

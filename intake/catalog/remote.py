@@ -70,16 +70,12 @@ class RemoteCatalog(Catalog):
             To pass to the server when it instantiates the data source
         """
         from requests.compat import urljoin, urlparse
-        if http_args is None:
-            http_args = {}
-        else:
-            # Make a deep copy to avoid mutating input.
-            http_args = copy.deepcopy(http_args)
+        http_args = {} if http_args is None else copy.deepcopy(http_args)
         secure = http_args.pop('ssl', False)
         scheme = 'https' if secure else 'http'
         url = url.replace('intake', scheme, 1)
         if not url.endswith('/'):
-            url = url + '/'
+            url = f'{url}/'
         self.url = url
         self.info_url = urljoin(url, 'v1/info')
         self.source_url = urljoin(url, 'v1/source')
@@ -142,8 +138,9 @@ class RemoteCatalog(Catalog):
             response.raise_for_status()
         except requests.HTTPError as err:
             raise RemoteCatalogError(
-                "Failed to fetch page of entries {}-{}."
-                "".format(page_offset, page_offset + self._page_size)) from err
+                f"Failed to fetch page of entries {page_offset}-{page_offset + self._page_size}."
+            ) from err
+
         info = msgpack.unpackb(response.content, **unpack_kwargs)
         page = {}
         for source in info['sources']:
@@ -217,12 +214,7 @@ class RemoteCatalog(Catalog):
         # accessed in this Catalog via __getitem__.
         import requests
 
-        if self.page_size is None:
-            # Fetch all source info.
-            params = {}
-        else:
-            # Just fetch the metadata now; fetch source info later in pages.
-            params = {'page_offset': 0, 'page_size': 0}
+        params = {} if self.page_size is None else {'page_offset': 0, 'page_size': 0}
         http_args = self._get_http_args(params)
         response = requests.get(self.info_url, **http_args)
         try:
@@ -282,13 +274,7 @@ class RemoteCatalog(Catalog):
         return cat
 
     def __len__(self):
-        if self._len is None:
-            # The server is running an old version of intake and did not
-            # provide a length, so we have no choice but to do this the
-            # expensive way.
-            return sum(1 for _ in self)
-        else:
-            return self._len
+        return sum(1 for _ in self) if self._len is None else self._len
 
     @staticmethod
     def _persist(source, path, **kwargs):
@@ -343,8 +329,7 @@ class Entries(collections.abc.Mapping):
         self.complete = self._catalog.page_size is None
 
     def __iter__(self):
-        for key in self._page_cache:
-            yield key
+        yield from self._page_cache
         if self._catalog.page_size is None:
             # We are not paginating, either because the user set page_size=None
             # or the server is a version of intake before pagination parameters
@@ -355,8 +340,7 @@ class Entries(collections.abc.Mapping):
             page = self._catalog.fetch_page(self._page_offset)
             self._page_cache.update(page)
             self._page_offset += len(page)
-            for key in page:
-                yield key
+            yield from page
             if len(page) < self._catalog.page_size:
                 # Partial or empty page.
                 # We are done until the next call to items(), when we
@@ -368,10 +352,8 @@ class Entries(collections.abc.Mapping):
         """
         Iterate over items that are already cached. Perform no requests.
         """
-        for item in self._page_cache.items():
-            yield item
-        for item in self._direct_lookup_cache.items():
-            yield item
+        yield from self._page_cache.items()
+        yield from self._direct_lookup_cache.items()
 
     def __getitem__(self, key):
         try:
@@ -484,37 +466,36 @@ def open_remote(url, entry, container, user_parameters, description, http_args,
     req = requests.post(urljoin(url, '/v1/source'),
                         data=msgpack.packb(payload, **pack_kwargs),
                         **http_args)
-    if req.ok:
-        response = msgpack.unpackb(req.content, **unpack_kwargs)
+    if not req.ok:
+        raise Exception('Server error: %d, %s' % (req.status_code, req.reason))
+    response = msgpack.unpackb(req.content, **unpack_kwargs)
 
-        if 'plugin' in response:
-            pl = response['plugin']
-            pl = [pl] if isinstance(pl, str) else pl
-            # Direct access
-            for p in pl:
-                if p in plugin_registry:
-                    source = plugin_registry[p](**response['args'])
-                    proxy = False
-                    break
-            else:
-                proxy = True
+    if 'plugin' in response:
+        pl = response['plugin']
+        pl = [pl] if isinstance(pl, str) else pl
+        # Direct access
+        for p in pl:
+            if p in plugin_registry:
+                source = plugin_registry[p](**response['args'])
+                proxy = False
+                break
         else:
             proxy = True
-        if proxy:
-            response.pop('container')
-            response.update({'name': entry, 'parameters': user_parameters})
-            if container == 'catalog':
-                response.update({'auth': auth,
-                                 'getenv': getenv,
-                                 'getshell': getshell,
-                                 'page_size': page_size,
-                                 'persist_mode': persist_mode
-                                 # TODO ttl?
-                                 # TODO storage_options?
-                                 })
-            source = container_map[container](url, http_args, **response)
-        source.description = description
-        return source
     else:
-        raise Exception('Server error: %d, %s' % (req.status_code, req.reason))
+        proxy = True
+    if proxy:
+        response.pop('container')
+        response.update({'name': entry, 'parameters': user_parameters})
+        if container == 'catalog':
+            response.update({'auth': auth,
+                             'getenv': getenv,
+                             'getshell': getshell,
+                             'page_size': page_size,
+                             'persist_mode': persist_mode
+                             # TODO ttl?
+                             # TODO storage_options?
+                             })
+        source = container_map[container](url, http_args, **response)
+    source.description = description
+    return source
 

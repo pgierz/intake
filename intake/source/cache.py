@@ -33,7 +33,7 @@ def sanitize_path(path):
     if protocol in ('http', 'https'):
         # Most FSs remove the protocol but not HTTPFS. We need to strip
         # it to match properly.
-        path = os.path.normpath(path.replace("{}://".format(protocol), ''))
+        path = os.path.normpath(path.replace(f"{protocol}://", ''))
     elif protocol == 'file':
         # Remove trailing slashes from file paths.
         path = os.path.normpath(path)
@@ -88,8 +88,9 @@ class BaseCache(object):
         if not os.path.exists(self._cache_dir):
             os.makedirs(self._cache_dir)
         if os.path.isfile(self._cache_dir):
-            raise Exception("Path for cache directory exists as a file: {}"
-                            "".format(self._cache_dir))
+            raise Exception(
+                f"Path for cache directory exists as a file: {self._cache_dir}"
+            )
 
     def _munge_path(self, cache_subdir, urlpath):
         import re
@@ -97,7 +98,7 @@ class BaseCache(object):
         path = sanitize_path(urlpath)
 
         if 'regex' in self._spec:
-            regex = r'%s' % sanitize_path(self._spec['regex'])
+            regex = f"{sanitize_path(self._spec['regex'])}"
             path = re.sub(regex, '', path)
 
         return posixpath.join(self._cache_dir, cache_subdir, path.lstrip('/\\'))
@@ -115,10 +116,12 @@ class BaseCache(object):
         cache_path = self._munge_path(subdir, urlpath)
 
         dirname = os.path.dirname(cache_path)
-        if not os.path.exists(dirname):
-            if not (dirname.startswith('https://') or
-                    dirname.startswith('http://')):
-                os.makedirs(dirname)
+        if (
+            not os.path.exists(dirname)
+            and not dirname.startswith('https://')
+            and not dirname.startswith('http://')
+        ):
+            os.makedirs(dirname)
 
         return cache_path
 
@@ -182,9 +185,9 @@ class BaseCache(object):
                 continue
 
             if not os.path.isfile(cache_path):
-                logger.debug("Caching file: {}".format(file_in.path))
-                logger.debug("Original path: {}".format(urlpath))
-                logger.debug("Cached at: {}".format(cache_path))
+                logger.debug(f"Caching file: {file_in.path}")
+                logger.debug(f"Original path: {urlpath}")
+                logger.debug(f"Cached at: {cache_path}")
                 if meta:
                     self._log_metadata(urlpath, file_in.path, cache_path)
                 ddown = dask.delayed(_download)
@@ -233,7 +236,7 @@ class BaseCache(object):
             fn = os.path.dirname(cache_entry['cache_path'])
             os.rmdir(fn)
         except (OSError, IOError):
-            logger.debug("Failed to remove cache directory: %s" % fn)
+            logger.debug(f"Failed to remove cache directory: {fn}")
 
     def clear_all(self):
         """
@@ -281,11 +284,14 @@ def _download(file_in, file_out, blocksize, output=False):
             file_size = file_in.fs.size(file_in.path)
             pbar_disabled = not file_size
         except ValueError as err:
-            logger.debug("File system error requesting size: {}".format(err))
+            logger.debug(f"File system error requesting size: {err}")
             file_size = 0
             pbar_disabled = True
         if output:
-            if not pbar_disabled:
+            if pbar_disabled:
+                output = False
+
+            else:
                 for i in range(100):
                     if i not in display:
                         display.add(i)
@@ -296,10 +302,7 @@ def _download(file_in, file_out, blocksize, output=False):
                             position=out, desc=os.path.basename(file_out.path),
                             mininterval=0.1,
                             bar_format=r'{n}/|/{l_bar}')
-            else:
-                output = False
-
-        logger.debug("Caching {}".format(file_in.path))
+        logger.debug(f"Caching {file_in.path}")
         with file_in as f1:
             with file_out as f2:
                 data = True
@@ -313,7 +316,7 @@ def _download(file_in, file_out, blocksize, output=False):
                 pbar.update(pbar.total - pbar.n)  # force to full
                 pbar.close()
             except Exception as e:
-                logger.debug('tqdm exception: %s' % e)
+                logger.debug(f'tqdm exception: {e}')
             finally:
                 display.remove(out)
 
@@ -364,7 +367,7 @@ class DirCache(BaseCache):
                                 **self._storage_options)[0]
                      for f in files_in]
         files_in2, files_out2 = [], []
-        paths = set(os.path.dirname(f.path) for f in files_in)
+        paths = {os.path.dirname(f.path) for f in files_in}
         for fin, fout in zip(files_in, files_out):
             if fin.path in paths:
                 try:
@@ -442,9 +445,9 @@ class CompressedCache(BaseCache):
             out2 = decomp[d](f, subdir)
             out3 = filter(re.compile(self._spec.get('regex_filter', '.*')).search, out2)
             for fn in out3:
-                logger.debug("Caching file: {}".format(f))
-                logger.debug("Original path: {}".format(orig.path))
-                logger.debug("Cached at: {}".format(fn))
+                logger.debug(f"Caching file: {f}")
+                logger.debug(f"Original path: {orig.path}")
+                logger.debug(f"Cached at: {fn}")
                 if meta:
                     self._log_metadata(self._urlpath, orig.path, fn)
                 out.append(fn)

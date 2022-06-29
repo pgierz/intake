@@ -89,7 +89,7 @@ class DriverSouces:
         # priority order (decreasing): runtime, config, entrypoints, package scan
         out = {}
         if self.package_scan:
-            out.update(self.scanned)
+            out |= self.scanned
 
         for ep in self.from_entrypoints() + self.from_conf():
             out[ep.name] = ep
@@ -227,8 +227,6 @@ def load_plugins_from_module(module_name):
     """
     from intake.source import DataSource
     from intake.catalog import Catalog
-    plugins = {}
-
     try:
         try:
             mod = importlib.import_module(module_name)
@@ -245,14 +243,13 @@ def load_plugins_from_module(module_name):
             else:
                 raise
     except Exception as e:
-        logger.debug("Import module <{}> failed: {}".format(module_name, e))
+        logger.debug(f"Import module <{module_name}> failed: {e}")
         return {}
-    for _, cls in inspect.getmembers(mod, inspect.isclass):
-        # Don't try to register plugins imported into this module elsewhere
-        if issubclass(cls, (Catalog, DataSource)):
-            plugins[cls.name] = cls
-
-    return plugins
+    return {
+        cls.name: cls
+        for _, cls in inspect.getmembers(mod, inspect.isclass)
+        if issubclass(cls, (Catalog, DataSource))
+    }
 
 
 class ConfigurationError(Exception):

@@ -100,8 +100,7 @@ class TestServerV1Source(TestServerV1Base):
             unpacker = msgpack.Unpacker(**unpack_kwargs)
             unpacker.feed(response.body)
 
-            for msg in unpacker:
-                responses.append(msg)
+            responses.extend(iter(unpacker))
         else:
             responses = [{'error': str(response.error)}]
 
@@ -284,8 +283,8 @@ def port_server(tmpdir):
     try:
         while True:
             try:
-                requests.get('http://localhost:%s' % port)
-                yield 'intake://localhost:%s' % port
+                requests.get(f'http://localhost:{port}')
+                yield f'intake://localhost:{port}'
                 break
             except:
                 time.sleep(0.2)
@@ -311,8 +310,8 @@ def address_server(tmpdir):
     t = time.time()
     while True:
         try:
-            requests.get('http://0.0.0.0:%s' % port)
-            yield 'intake://0.0.0.0:%s' % port
+            requests.get(f'http://0.0.0.0:{port}')
+            yield f'intake://0.0.0.0:{port}'
             break
         except:
             time.sleep(0.2)

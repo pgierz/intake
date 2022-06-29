@@ -72,7 +72,7 @@ class CatalogEntry(DictSerialiseMixin):
         from ..source.base import PersistMixin
         if persist is not None and persist not in [
                 'always', 'never', 'default']:
-            raise ValueError('Persist value (%s) not understood' % persist)
+            raise ValueError(f'Persist value ({persist}) not understood')
         persist = persist or self._pmode
         s = self.get(**kwargs)
         if persist != 'never' and isinstance(s, PersistMixin) and s.has_been_persisted:

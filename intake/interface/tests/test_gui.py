@@ -63,7 +63,7 @@ def test_gui_open_plot_panel(gui, cat1, cat2, sources1, sources2):
     assert gui.source.plot.source.entry == sources1[0]
 
     gui.source.select.cats = [cat2]
-    assert gui.source.plot_widget.value is False  # hide on select change
+    assert not gui.source.plot_widget.value
     assert gui.source.plot.visible is False
     assert not gui.source.plot.watchers
 
@@ -109,7 +109,7 @@ def test_gui_close_and_open_source(gui, cat2, sources2):
     gui.source.visible = False
     gui.cat.select.selected = [cat2]
 
-    assert gui.source.visible is False
+    assert not gui.source.visible
     assert len(gui.source.control_panel.objects) == 0
     assert gui.source.description.visible is False
     assert gui.source.plot.visible is False
@@ -127,7 +127,7 @@ def test_gui_init_empty():
     gui = GUI(cats=[])
     assert gui.cat.select.items == []
     assert gui.cats == []
-    assert gui.item == None
+    assert gui.item is None
 
     assert not gui.cat.add.watchers
     assert gui.cat.add.visible is False

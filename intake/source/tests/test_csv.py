@@ -134,15 +134,15 @@ def check_read_pattern_output(source):
 
     names = ['Alice', 'Bob', 'Charlie', 'Eve']
 
-    file_1 = df[df['name'].isin(['{}1'.format(name) for name in names])]
+    file_1 = df[df['name'].isin([f'{name}1' for name in names])]
     assert all(file_1.num == 2)
     assert all(file_1.dup == 1)
 
-    file_2 = df[df['name'].isin(['{}2'.format(name) for name in names])]
+    file_2 = df[df['name'].isin([f'{name}2' for name in names])]
     assert all(file_2.num == 2)
     assert all(file_2.dup == 2)
 
-    file_3 = df[df['name'].isin(['{}3'.format(name) for name in names])]
+    file_3 = df[df['name'].isin([f'{name}3' for name in names])]
     assert all(file_3.num == 3)
     assert all(file_3.dup == 2)
 

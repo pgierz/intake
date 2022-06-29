@@ -18,9 +18,7 @@ import os
 
 def make_path_posix(path):
     """ Make path generic """
-    if '://' in path:
-        return path
-    return path.replace('\\', '/').replace('//', '/')
+    return path if '://' in path else path.replace('\\', '/').replace('//', '/')
 
 
 def no_duplicates_constructor(loader, node, deep=False):
@@ -36,10 +34,13 @@ def no_duplicates_constructor(loader, node, deep=False):
         if key in mapping:
             from intake.catalog.exceptions import DuplicateKeyError
 
-            raise DuplicateKeyError("while constructing a mapping",
-                                    node.start_mark,
-                                    "found duplicate key (%s)" % key,
-                                    key_node.start_mark)
+            raise DuplicateKeyError(
+                "while constructing a mapping",
+                node.start_mark,
+                f"found duplicate key ({key})",
+                key_node.start_mark,
+            )
+
         mapping[key] = value
 
     return loader.construct_mapping(node, deep)
@@ -145,10 +146,7 @@ class DictSerialiseMixin(object):
 
 def remake_instance(data):
     import importlib
-    if isinstance(data, str):
-        data = {'cls': data}
-    else:
-        data = data.copy()
+    data = {'cls': data} if isinstance(data, str) else data.copy()
     mod, klass = data.pop('cls').rsplit('.', 1)
     module = importlib.import_module(mod)
     cl = getattr(module, klass)

@@ -27,7 +27,7 @@ def server():
             out = P.communicate()
             raise RuntimeError("timeout waiting for Tiled server\n%s", out)
         time.sleep(0.1)
-    yield url + "/api"
+    yield f"{url}/api"
     P.terminate()
     P.wait()
 

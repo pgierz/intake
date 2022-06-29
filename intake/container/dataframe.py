@@ -93,8 +93,7 @@ class RemoteDataFrame(RemoteSource):
         if not hasattr(df, 'npartitions'):
             df = dd.from_pandas(df, npartitions=1)
         df.to_parquet(path, **kwargs)
-        source = ParquetSource(path, meta={})
-        return source
+        return ParquetSource(path, meta={})
 
 
 def is_dataframe_like(df):

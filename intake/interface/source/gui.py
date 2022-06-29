@@ -162,9 +162,8 @@ class SourceGUI(Base):
     @property
     def source_instance(self):
         """DataSource from the current selection using current parameters"""
-        sel = self.select.selected
-        args = self.pars_editor.kwargs
-        if sel:
+        if sel := self.select.selected:
+            args = self.pars_editor.kwargs
             return sel[0](**args)
 
     def __getstate__(self):
@@ -216,10 +215,7 @@ class ParsEditor(Base):
     @property
     def kwargs(self):
         """The current selections"""
-        if self.dirty:
-            return {}
-        else:
-            return {w.name: w.value for w in self.panel}
+        return {} if self.dirty else {w.name: w.value for w in self.panel}
 
     @staticmethod
     def par_to_widget(par):

@@ -52,17 +52,17 @@ def main(argv=None):
 
     logger.info('Creating catalog from:')
     for arg in args.catalog_args:
-        logger.info('  - %s' % arg)
+        logger.info(f'  - {arg}')
 
     catargs = args.catalog_args
     ttl = args.ttl
 
     if len(catargs) == 1:
         catalog = open_catalog(catargs[0], ttl=ttl)
-        logger.info("catalog_args: %s" % catargs[0])
+        logger.info(f"catalog_args: {catargs[0]}")
     else:
         catalog = open_catalog(catargs, flatten=args.flatten, ttl=ttl)
-        logger.info("catalog_args: %s" % catargs)
+        logger.info(f"catalog_args: {catargs}")
     if args.list_entries:
         # This is not a good idea if the Catalog is huge.
         logger.info('Entries:' + ','.join(list(catalog)))
@@ -79,7 +79,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         logger.critical("Exiting")
     except Exception as e:
-        logger.critical("Exiting due to %s" % e)
+        logger.critical(f"Exiting due to {e}")
 
 
 if __name__ == "__main__":

@@ -33,7 +33,7 @@ class RemoteArray(RemoteSource):
     def _load_metadata(self):
         import dask.array as da
         if self.arr is None:
-            name = 'remote-array-' + self._source_id
+            name = f'remote-array-{self._source_id}'
             nparts = (range(len(n)) for n in self.chunks)
             dask = {
                 (name, ) + part: (get_partition, self.url, self.headers,
@@ -101,5 +101,4 @@ class RemoteArray(RemoteSource):
             arr = from_array(arr, chunks='auto')
         to_zarr(arr, path, component=None,
                 storage_options=storage_options, **kwargs)
-        source = ZarrArraySource(path, storage_options, component)
-        return source
+        return ZarrArraySource(path, storage_options, component)
